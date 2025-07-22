@@ -4,6 +4,7 @@
 #include "audio_codec.h"
 #include "board.h"
 #include "display.h"
+#include "discover.h"
 #include "mcp_server.h"
 #include "mqtt_protocol.h"
 #include "settings.h"

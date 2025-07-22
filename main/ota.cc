@@ -2,6 +2,9 @@
 #include "system_info.h"
 #include "settings.h"
 #include "assets/lang_config.h"
+#ifdef CONFIG_USE_MDNS_OTA_DISCOVERY
+#include "discover.h"
+#endif
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -44,11 +47,36 @@ Ota::~Ota() {
 }
 
 std::string Ota::GetCheckVersionUrl() {
+    #ifdef CONFIG_USE_MDNS_OTA_DISCOVERY
+    // Initialize Discovery instance
+    auto discovery = Discovery::Init();
+    if (!discovery) {
+        ESP_LOGW(TAG, "Failed to initialize Discovery, mDNS discovery will not be available");
+    }
+    // First try to discover OTA server via mDNS using the Discovery class
+    if (discovery && discovery->IsInitialized()) {
+        ESP_LOGI(TAG, "Attempting to discover OTA server via mDNS");
+        std::string discovered_url = discovery->DiscoverOtaServer(3000);
+
+        if (!discovered_url.empty()) {
+            ESP_LOGI(TAG, "Using discovered OTA server: %s", discovered_url.c_str());
+            return discovered_url;
+        }
+
+        ESP_LOGI(TAG, "mDNS discovery failed, falling back to configured URL");
+    } else {
+        ESP_LOGI(TAG, "Discovery not available, using configured URL");
+    }
+    #endif
+
+    // Fallback to configured URL
     Settings settings("wifi", false);
     std::string url = settings.GetString("ota_url");
     if (url.empty()) {
         url = CONFIG_OTA_URL;
     }
+
+    ESP_LOGI(TAG, "Using configured OTA URL: %s", url.c_str());
     return url;
 }
 

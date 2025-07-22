@@ -33,6 +33,14 @@ config CUSTOM_ASSETS_FILE
         The custom assets file to flash.
         It can be a local file relative to the project directory or a remote url.
 
+config USE_MDNS_OTA_DISCOVERY
+    bool "Enable mDNS OTA Server Discovery"
+    default n
+    help
+        Enable mDNS discovery for OTA servers on the local network.
+        When enabled, the device will first try to discover an OTA server
+        via mDNS (_xiaozhi._tcp) before falling back to the configured URL.
+
 choice
     prompt "Default Language"
     default LANGUAGE_ZH_CN
